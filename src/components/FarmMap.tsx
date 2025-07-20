@@ -1,13 +1,12 @@
 // src/components/FarmMap.tsx
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { useEffect, useState } from 'react';
-import { LatLngExpression } from 'leaflet';
-import L from 'leaflet';
+import L, { type LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import markerIconPng from 'leaflet/dist/images/marker-icon.png';
 
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase'; // você precisa exportar `db` do seu firebase.ts
+import { db } from '../firebase';
 import { getTheme } from '../lib/utils';
 
 const defaultIcon = new L.Icon({

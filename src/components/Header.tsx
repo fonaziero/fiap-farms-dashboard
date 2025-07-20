@@ -29,7 +29,7 @@ export default function Header({ user, setSidebarOpen }: any) {
     }, []);
 
     return (
-        <header className="relative flex justify-between items-center bg-background p-4 mx-6 rounded shadow mb-6">
+        <header className="relative flex justify-between items-center bg-background p-4 mx-3 md:mx-6 rounded shadow mb-6">
             {/* Botão de menu mobile */}
             <button
                 onClick={() => setSidebarOpen(true)}
@@ -39,7 +39,7 @@ export default function Header({ user, setSidebarOpen }: any) {
             </button>
 
             {/* Título */}
-            <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-green-700' : 'text-primary'}`}>🌾 FIAP Farms Dashboard</h1>
+            <h1 className={`text-2xl font-bold  text-center md:text-start ${theme === 'dark' ? 'text-green-700' : 'text-primary'}`}>🌾 FIAP Farms Dashboard</h1>
 
             {/* Usuário + dropdown */}
             <div className="relative" ref={dropdownRef}>

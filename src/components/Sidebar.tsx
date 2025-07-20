@@ -76,15 +76,15 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Drawer lateral (mobile) */}
       <div
         className={clsx(
-          'fixed inset-0 z-40 transition-transform duration-300 md:hidden',
+          'fixed inset-0 z-40 transition-transform duration-300 md:hidden ',
           isOpen ? 'translate-x-0' : '-translate-x-full'
-        )}
+        ) + ` ${theme === 'dark' ? 'text-foreground ' : 'text-primary-foreground'} `}
       >
         {/* Overlay */}
         <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
         {/* Conteúdo da sidebar mobile */}
-        <div className="relative w-64  bg-primary text-foreground h-full flex flex-col z-50 shadow-lg">
+        <div className="relative w-64  bg-primary  h-full flex flex-col z-50 shadow-lg">
           <div className="flex justify-between items-center px-4 py-4 border-b border-border">
             <span className="font-bold text-xl">🌾 FIAP Farms</span>
             <button onClick={onClose}>
@@ -95,7 +95,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="mt-auto p-4 border-t border-green-600">
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 text-foreground hover:bg-background p-2 rounded-md w-full"
+              className={`flex items-center gap-3 text-foreground hover:bg-background p-2 rounded-md w-full   ${theme === 'dark' ? 'text-foreground ' : 'text-primary-foreground'} `}
             >
               <LogOut size={20} />
               <span>Sair</span>

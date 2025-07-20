@@ -1,17 +1,18 @@
 // src/App.tsx
-import { Route, Routes, Navigate } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import ProtectedRoute from './components/ProtectedRoute';
 import PrivateLayout from './components/PrivateLayout';
 import Settings from './pages/Configurations';
-import AuthPage from './components/AuthPage';
+import AuthPage from './components/RedirectWithToken';
+import RedirectWithToken from './components/RedirectWithToken';
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/login" />} />
+      <Route path="/" element={<RedirectWithToken />} />
       <Route path="/login" element={<Login />} />
       <Route path="/auth" element={<AuthPage />} />
 

@@ -189,89 +189,124 @@ export default function ProductionChartSection() {
 
   return (
     <div className="bg-background p-6 rounded shadow col-span-full">
-      <div className='flex justify-between'>
-        <div>
-          <h2 className="text-xl font-semibold mb-5">Comparativo de Produção</h2>
-          {/* Filtros de métricas */}
-          <div className="flex flex-wrap gap-2 mb-4">
+      {/* Header: Título + Filtros */}
+      <div className="flex flex-col gap-3 md:gap-6 md:flex-row md:justify-between md:items-start">
+
+        {/* Bloco 1: Título + Filtros de Métricas */}
+        <div className="flex flex-col md:max-w-[60%]">
+          <h2 className="text-xl font-semibold mb-4">Comparativo de Produção</h2>
+          <div className="flex flex-wrap gap-2 mb-2">
             {availableMetrics.map(metric => (
               <Badge
                 key={metric.key}
                 onClick={() => toggleMetric(metric.key)}
-                className={`cursor-pointer flex items-center gap-1 ${selectedMetrics.includes(metric.key) ? 'bg-green-600 text-white hover:bg-green-600' : 'bg-gray-200 text-gray-800 hover:bg-secondary hover:text-card-foreground'}`}
+                className={`cursor-pointer flex items-center gap-1 ${selectedMetrics.includes(metric.key)
+                  ? 'bg-green-600 text-white hover:bg-green-600'
+                  : 'bg-gray-200 text-gray-800 hover:bg-secondary hover:text-card-foreground'
+                  }`}
               >
-              { metric.label }
-                {
-                selectedMetrics.includes(metric.key) && (
+                {metric.label}
+                {selectedMetrics.includes(metric.key) && (
                   <X size={12} className="ml-1" />
-                )
-              }
+                )}
               </Badge>
             ))}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {selectedProducts.map(product => (
+              <Badge
+                key={product}
+                className="flex items-center gap-1"
+                style={{ backgroundColor: colorMap[product], color: 'white' }}
+              >
+                {capitalize(product)}
+                <X
+                  size={12}
+                  className="cursor-pointer"
+                  onClick={() => removeProduct(product)}
+                />
+              </Badge>
+            ))}
+
+            {allProductNames
+              .filter(p => !selectedProducts.includes(p))
+              .map(product => (
+                <button
+                  key={product}
+                  onClick={() => addProduct(product)}
+                  className="px-3 py-1 rounded border text-sm bg-gray-200 text-gray-800 hover:bg-secondary hover:text-card-foreground capitalize"
+                >
+                  + {product}
+                </button>
+              ))}
+          </div>
         </div>
 
-        {/* Filtros de produtos */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {selectedProducts.map(product => (
-            <Badge
-              key={product}
-              className="flex items-center gap-1"
-              style={{ backgroundColor: colorMap[product], color: 'white' }}
-            >
-              {capitalize(product)}
-              <X size={12} className="cursor-pointer" onClick={() => removeProduct(product)} />
-            </Badge>
-          ))}
 
-          {allProductNames
-            .filter(p => !selectedProducts.includes(p))
-            .map(product => (
-              <button
-                key={product}
-                onClick={() => addProduct(product)}
-                className="px-3 py-1 rounded border text-sm bg-gray-200 text-gray-800 hover:bg-secondary hover:text-card-foreground capitalize"
-              >
-                + {product}
-              </button>
-            ))}
+        <div className="mt-6 flex flex-col md:flex-col md:justify-between md:items-end gap-4">
+          {/* Botões de tipo de gráfico */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setChartType('line')}
+              className={`p-2 rounded ${chartType === 'line'
+                ? 'bg-card text-card-foreground'
+                : 'bg-secondary'
+                }`}
+            >
+              <LineChart size={18} />
+            </button>
+            <button
+              onClick={() => setChartType('bar')}
+              className={`p-2 rounded ${chartType === 'bar'
+                ? 'bg-card text-card-foreground'
+                : 'bg-secondary'
+                }`}
+            >
+              <BarChart size={18} />
+            </button>
+            <button
+              onClick={() => setChartType('area')}
+              className={`p-2 rounded ${chartType === 'area'
+                ? 'bg-card text-card-foreground'
+                : 'bg-secondary'
+                }`}
+            >
+              <AreaChart size={18} />
+            </button>
+          </div>
+
+          {/* Botões de exportação */}
+          <div className="flex gap-2">
+            <button
+              className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
+              onClick={() => exportToCSV('dados-producao', data)}
+            >
+              Exportar CSV
+            </button>
+            <button
+              className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm"
+              onClick={() => exportToPDF('dados-producao', data)}
+            >
+              Exportar PDF
+            </button>
+          </div>
         </div>
       </div>
-      <div className='flex flex-col gap-4 '>
-        <div className="flex gap-2">
-          <button onClick={() => setChartType('line')} className={`p-2 rounded ${chartType === 'line' ? 'bg-card text-card-foreground' : 'bg-secondary'}`}><LineChart size={18} /></button>
-          <button onClick={() => setChartType('bar')} className={`p-2 rounded ${chartType === 'bar' ? 'bg-card text-card-foreground' : 'bg-secondary'}`}><BarChart size={18} /></button>
-          <button onClick={() => setChartType('area')} className={`p-2 rounded ${chartType === 'area' ? 'bg-card text-card-foreground' : 'bg-secondary'}`}><AreaChart size={18} /></button>
-        </div>
-        <div className="flex gap-2 mb-4">
-          <button
-            className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
-            onClick={() => exportToCSV('dados-producao', data)}
-          >
-            Exportar CSV
-          </button>
-          <button
-            className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm"
-            onClick={() => exportToPDF('dados-producao', data)}
-          >
-            Exportar PDF
-          </button>
-        </div>
+
+
+      {/* Gráfico */}
+      <div className="mt-6">
+        <GenericChart
+          data={data}
+          xKey="mes"
+          dataKeys={dataKeys}
+          labels={labels}
+          colors={colors}
+          type={chartType}
+          height={300}
+        />
       </div>
     </div>
 
-
-
-
-      {/* Gráfico */ }
-  <GenericChart
-    data={data}
-    xKey="mes"
-    dataKeys={dataKeys}
-    labels={labels}
-    colors={colors}
-    type={chartType}
-    height={300}
-  />
-    </div >
   );
 }
