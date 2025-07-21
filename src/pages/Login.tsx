@@ -1,134 +1,138 @@
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { type FormEvent, useEffect, useState } from 'react';
-import { auth } from '../firebase';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+// Login.tsx
+import { useEffect, useRef, useState } from 'react';
+
 
 export default function Login() {
-  const [searchParams] = useSearchParams();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-  const [isFromMobile, setisFromMobile] = useState(sessionStorage.getItem('fromMobile'));
+  const [isRegister, setIsRegister] = useState(false);
+  const [name, setName] = useState('');
+  const [localEmail, setLocalEmail] = useState('');
+  const [localPassword, setLocalPassword] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
+  const bird1 = useRef<HTMLImageElement>(null);
+  const bird2 = useRef<HTMLImageElement>(null);
+  const bird3 = useRef<HTMLImageElement>(null);
+  const cloud1 = useRef<HTMLImageElement>(null);
+  const cloud2 = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    setLoading(true);
-    const rawEmail = searchParams.get('email');
-    const rawPassword = searchParams.get('password');
-    const fromMobile = searchParams.get('fromMobile') === 'true';
-    const decodedEmail = rawEmail ? decodeURIComponent(rawEmail) : null;
-    const decodedPassword = rawPassword ? decodeURIComponent(rawPassword) : null;
-    const isFromMobile = sessionStorage.getItem('fromMobile');
-    setisFromMobile(sessionStorage.getItem('fromMobile'));
-    const rnWebView = (window as any).ReactNativeWebView;
-
-    if (fromMobile) {
-      sessionStorage.setItem('fromMobile', 'true');
-    }
-
-
-    const authenticateWithEmailPassword = async () => {
-      if (!decodedEmail || !decodedPassword) {
-        if (isFromMobile && rnWebView?.postMessage) {
-          rnWebView.postMessage("erro-login");
-        }
-        setLoading(false);
-        return;
-      }
-
-      try {
-        console.log('🔐 Tentando autenticar com email e senha...');
-        await signInWithEmailAndPassword(auth, decodedEmail, decodedPassword);
-        console.log('✅ Autenticado com sucesso, redirecionando...');
-        setTimeout(() => navigate('/dashboard'), 3000);
-
-
-      } catch (err: any) {
-        console.error('❌ Erro ao autenticar:', err);
-      } finally {
-        setTimeout(() => setLoading(false), 3000);
-      }
+    const animate = (element: HTMLImageElement | null, distance: number, duration: number, reverse = false) => {
+      if (!element) return;
+      const keyframes = reverse
+        ? [{ transform: `translateX(${distance}px) rotateY(180deg)` }, { transform: `translateX(-200px) rotateY(180deg)` }]
+        : [{ transform: `translateX(-200px) ` }, { transform: `translateX(${distance}px)` }];
+      element.animate(keyframes, {
+        duration,
+        iterations: Infinity,
+        easing: 'linear',
+      });
     };
 
-    authenticateWithEmailPassword();
-  }, [searchParams, isFromMobile, navigate]);
+    animate(bird1.current, window.innerWidth, 20000, true);
+    animate(bird2.current, window.innerWidth, 20000, true);
+    animate(bird3.current, window.innerWidth, 15000, false);
+    animate(cloud1.current, window.innerWidth, 25000, true);
+    animate(cloud2.current, window.innerWidth * 1.2, 30000, true);
+  }, []);
 
+  const handleInternalAuth = async () => {
+    setLoading(true);
+    setMessage('');
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      window.location.href = '/dashboard';
-    } catch (err: any) {
-      setError('Credenciais inválidas');
+      const { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } = await import('firebase/auth');
+      const { auth } = await import('../firebase');
+      let userCredential;
+
+      if (isRegister) {
+        userCredential = await createUserWithEmailAndPassword(auth, localEmail, localPassword);
+        if (userCredential.user && name) {
+          await updateProfile(userCredential.user, { displayName: name });
+        }
+        setMessage('Cadastro realizado com sucesso!');
+      } else {
+        userCredential = await signInWithEmailAndPassword(auth, localEmail, localPassword);
+        setMessage('Login realizado com sucesso!');
+      }
+
+      if (userCredential?.user) {
+        sessionStorage.setItem('userCredentials', JSON.stringify({ email: localEmail, password: localPassword }));
+        window.location.href = '/dashboard';
+      }
+    } catch (error: any) {
+      console.error(error.code);
+      switch (error.code) {
+        case 'auth/invalid-email': setMessage('E-mail inválido.'); break;
+        case 'auth/user-not-found': setMessage('Usuário não encontrado.'); break;
+        case 'auth/wrong-password': setMessage('Senha incorreta.'); break;
+        case 'auth/email-already-in-use': setMessage('Este e-mail já está em uso.'); break;
+        case 'auth/weak-password': setMessage('A senha deve conter pelo menos 6 caracteres.'); break;
+        default: setMessage('Erro inesperado: ' + error.message);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-green-100 text-green-900 animate-fade-in">
-        <div className="text-6xl mb-4 animate-bounce">🌾</div>
-        <p className="text-xl font-bold mb-2">FIAP Farms</p>
-        <p className="text-md">Carregando<span className="animate-pulse">...</span></p>
-        <style>{`
-          @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-          }
-          .animate-bounce {
-            animation: bounce 2s infinite;
-          }
-          .animate-pulse {
-            animation: pulse 1.5s infinite;
-          }
-          @keyframes pulse {
-            0%, 100% { opacity: 1 }
-            50% { opacity: 0.3 }
-          }
-          .animate-fade-in {
-            animation: fade-in 0.8s ease-in-out;
-          }
-          @keyframes fade-in {
-            from { opacity: 0; }
-            to { opacity: 1; }
-          }
-        `}</style>
-      </div>
-    );
-  }
-  if (!isFromMobile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <form onSubmit={handleSubmit} className="bg-background p-6 rounded shadow-md w-full max-w-sm">
-          <h2 className="text-2xl font-bold mb-4">Login</h2>
-          {error && <p className="text-red-500 mb-2">{error}</p>}
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full p-2 border rounded mb-3"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Senha"
-            className="w-full p-2 border rounded mb-4"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <button
-            type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
-          >
-            Entrar
-          </button>
-        </form>
-      </div>
-    );
-  } else {
-    null
-  }
+  return (
+    <div className="relative flex items-center justify-center min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden" style={{ backgroundImage: "url('/images/bg-farm.png')" }}>
+      <img ref={cloud1} src="/images/cloud.png" alt="Cloud 1" className="absolute top-24 left-[00vw] w-32 opacity-50 z-10" />
+      <img ref={cloud2} src="/images/cloud.png" alt="Cloud 2" className="absolute top-40 left-[00vw] w-32 opacity-50 z-10" />
 
+      <img ref={bird1} src="/images/bird.png" alt="Bird 1" className="absolute top-10 left-[0vw] w-12 z-20" />
+      <img ref={bird2} src="/images/bird.png" alt="Bird 2" className="absolute top-20 left-[5vw] w-12 z-20" />
+      <img ref={bird3} src="/images/bird.png" alt="Bird 3" className="absolute top-16 left-[-200px] w-12 z-20" />
+
+
+      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md z-30">
+        <h2 className="text-center text-3xl font-bold text-green-700 mb-6">🌾 FIAP Farms</h2>
+
+        {isRegister && (
+          <input
+            type="text"
+            placeholder="Nome"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full p-2 border rounded mb-3"
+          />
+        )}
+        <input
+          type="email"
+          placeholder="E-mail"
+          value={localEmail}
+          onChange={(e) => setLocalEmail(e.target.value)}
+          className="w-full p-2 border rounded mb-3"
+        />
+        <input
+          type="password"
+          placeholder="Senha"
+          value={localPassword}
+          onChange={(e) => setLocalPassword(e.target.value)}
+          className="w-full p-2 border rounded mb-4"
+        />
+        <button
+          onClick={handleInternalAuth}
+          disabled={loading}
+          className="bg-green-700 text-white py-2 px-4 rounded w-full hover:bg-green-800"
+        >
+          {isRegister ? 'Cadastrar' : 'Entrar'}
+        </button>
+
+        {message && <p className="text-red-600 text-center mt-2">{message}</p>}
+
+        <div className="flex justify-center items-center mt-4 gap-2">
+          <span className="text-sm">
+            {isRegister ? 'Já tem conta?' : 'Novo aqui?'}
+          </span>
+          <button
+            className="text-blue-500 underline text-sm"
+            onClick={() => setIsRegister(!isRegister)}
+          >
+            {isRegister ? 'Entrar' : 'Cadastre-se'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
